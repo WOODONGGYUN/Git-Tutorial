@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+	<mapper namespace="com.springnews.bbs.mapper.BoardMapper" >
+	
+	
+	
+	<delete id="deleteReply">
+		DELETE FROM reply
+		WHERE no = #{no}
+	</delete>
+	
+	
+	<update id="updateReply" parameterType="Reply">
+		UPDATE reply
+			SET
+				reply_content=#{replyContent}, reg_date=SYSDATE()
+		WHERE no=#{no}				
+	</update>
+	
+	
+	<insert id="addReply" parameterType="Reply">
+		INSERT INTO 
+			reply( bbs_no, reply_content, id, reg_date )
+		VALUES( #{bbsNo}, #{replyContent}, #{id}, SYSDATE() )
+	</insert>
+	
+	
+	<update id="updateRecommend" parameterType="hashmap">
+		UPDATE news
+			SET
+			<if test="recommend == 'commend'">
+				recommend = recommend + 1
+			</if>
+			<if test="recommend == 'thank'">
+				thank = thank + 1
+			</if>
+		WHERE no = #{no}
+	</update>
+	
+	<select id="getRecommend" resultType="Board">
+		SELECT 
+			recommend, 
+			thank
+		FROM news
+		WHERE no = #{no}
+	</select>
+	
+	<select id="replyList" resultType="Reply">
+		SELECT
+			no, bbs_no bbsNo, reply_content replyContent, 
+			id, reg_date regDate
+		FROM reply
+		WHERE bbs_no = #{bbsNo}
+		ORDER BY no DESC
+	</select>
+	
+
+	<resultMap id="boardResultMap" type="Board">
+			<id property="no" column="no" />	
+			<result property="writer" column="writer" />
+			<result property="name" column="name" />
+			<result property="email" column="email" />
+			<result property="office" column="office" />
+			<result property="title" column="title" />
+			<result property="summary" column="summary" />
+			<result property="content" column="content" />
+			<result property="regDate" column="reg_date" />
+			<result property="pass" column="pass" />	
+			<result property="file1" column="file1" />
+			<result property="readCount" column="read_count" />
+			<result property="category" column="category" />
+		</resultMap>
+		
+		
+	<select id="Popular" resultType="Board" parameterType="hashmap">
+		SELECT
+			no, writer, name, email, office, title, summary, 
+			content, reg_date regDate, pass, file1, read_count readCount
+		FROM news 
+		WHERE read_count> 500	
+		ORDER BY read_count DESC
+		LIMIT 5
+	</select>	
+		
+		
+	<update id="incrementReadCount">
+		UPDATE news
+			SET read_count = read_count + 1
+		WHERE no = #{no}
+	</update>	
+		
+		
+	<select id="getBoardCount" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM news
+		<where>
+			<if test="type == 'title'">
+				title LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="type == 'office'">
+				office LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="type == 'content'">
+				content LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+		</where>	
+	</select>	
+	
+
+	<select id="boardList" resultType="Board" parameterType="hashmap">
+		SELECT
+			no, writer, name, email, office, title, summary, 
+			content, reg_date regDate, pass, file1, read_count readCount, category
+		FROM news
+		<where>
+			<if test="type == 'title'">
+				title LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="type == 'office'">
+				office LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="type == 'content'">
+				content LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			
+			<if test="category != 'null'">
+				category = #{category}
+			</if>
+		</where>		
+		ORDER BY no DESC
+		LIMIT #{startRow}, #{num}
+	</select>
+	
+	
+	<select id="getBoard" resultType="Board">
+		SELECT
+			*
+			FROM news
+		WHERE no = #{no}
+	</select>
+	
+
+	<insert id="insertBoard" parameterType="Board" useGeneratedKeys="true" keyProperty="no">
+		INSERT INTO news(
+			writer, name, email, office, title, 
+			summary, content, reg_date, pass, read_count, 
+			file1, category )
+			VALUES(
+			#{writer}, #{name}, #{email}, #{office}, #{title}, 
+			#{summary}, #{content}, SYSDATE(), #{pass}, #{readCount}, 
+			#{file1}, #{category} )		
+	</insert>
+	
+	<select id="isPassCheck" resultType="String">
+		SELECT 
+			pass
+		FROM news
+		WHERE no = #{no}	
+	</select>
+
+	<update id="updateBoard" parameterType="Board">
+		UPDATE news 
+			SET title = #{title}, 
+				summary = #{summary}, content = #{content}, reg_date = SYSDATE() , 
+				pass = #{pass}
+				
+				<if test="file1 != null">
+					,file1 = #{file1}
+				</if>
+				
+				WHERE no = #{no}
+			
+	</update>
+	
+	<delete id="deleteBoard" parameterType="int">
+		DELETE FROM news
+		WHERE no = #{no}
+	</delete>
+
+	
+	</mapper>	

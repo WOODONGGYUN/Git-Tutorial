@@ -30,6 +30,7 @@ public class BoardController {
 	@Autowired
 	private BoardService service;
 	
+	private BoardService service2;
 
 	@RequestMapping(value="/deleteProcess")
 	public String deleteBoard(HttpServletResponse response,PrintWriter out, 
